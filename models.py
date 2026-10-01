@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Union
+from typing import List, Optional, Union
 
 class JinaRerankerResult(BaseModel):
     index: int
@@ -14,4 +14,6 @@ class JinaRerankerResponse(BaseModel):
 class JinaRerankerRequest(BaseModel):
     query: str
     documents: List[str]
-    batch_size: int
+    top_n: Optional[int] = None
+    return_documents: bool = True
+    batch_size: int = 64
