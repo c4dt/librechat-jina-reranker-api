@@ -33,6 +33,12 @@ def rerank(request: JinaRerankerRequest = Body(...)):
         data = encoder.rerank(query, documents, batch_size=batch_size)
         token_count = get_rough_token_count(query, documents)
    
+        # LibreChat expects the Jina API behaviour: results sorted by score
+        # (best first) and truncated to top_n.
+        ranked = sorted(enumerate(data), key=lambda x: x[1], reverse=True)
+        if request.top_n is not None:
+            ranked = ranked[:request.top_n]
+
         output_result = {
             "model": MODEL_NAME,
             "usage": {"total_tokens": token_count},
@@ -40,9 +46,9 @@ def rerank(request: JinaRerankerRequest = Body(...)):
                 {
                     "index": i,
                     "relevance_score": float(score),
-                    "document": documents[i],
+                    "document": documents[i] if request.return_documents else None,
                 }
-                for i, score in enumerate(data)
+                for i, score in ranked
             ]
         }
 
